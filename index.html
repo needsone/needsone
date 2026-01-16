@@ -32,6 +32,10 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
         }
 
         body {
@@ -1040,16 +1044,38 @@
             showToast('Données supprimées');
         }
 
-        // Event listeners
-        document.getElementById('shortBtn').addEventListener('click', (e) => {
-            createRipple(e, e.currentTarget);
-            addPress('short');
-        });
+        // Event listeners - touch events for iOS
+        function handleButton(btn, type) {
+            let touched = false;
 
-        document.getElementById('longBtn').addEventListener('click', (e) => {
-            createRipple(e, e.currentTarget);
-            addPress('long');
-        });
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                touched = true;
+                const touch = e.touches[0];
+                const rect = btn.getBoundingClientRect();
+                // Create ripple at touch point
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = touch.clientX - rect.left - size / 2 + 'px';
+                ripple.style.top = touch.clientY - rect.top - size / 2 + 'px';
+                btn.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+                addPress(type);
+            }, { passive: false });
+
+            btn.addEventListener('click', (e) => {
+                if (!touched) {
+                    createRipple(e, btn);
+                    addPress(type);
+                }
+                touched = false;
+            });
+        }
+
+        handleButton(document.getElementById('shortBtn'), 'short');
+        handleButton(document.getElementById('longBtn'), 'long');
 
         document.getElementById('undoBtn').addEventListener('click', undoLast);
 
