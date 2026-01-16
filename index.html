@@ -1,13 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Button Tracker">
+    <meta name="apple-mobile-web-app-title" content="Tracker">
     <title>Button Tracker</title>
     <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --accent-short: #00d9ff;
+            --accent-long: #ff6b6b;
+            --accent-purple: #a855f7;
+        }
+
+        .light-theme {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(0, 0, 0, 0.05);
+            --text-primary: #1a1a2e;
+            --text-secondary: rgba(0, 0, 0, 0.5);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -17,11 +36,12 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: var(--bg-primary);
             min-height: 100vh;
             min-height: -webkit-fill-available;
-            color: #fff;
+            color: var(--text-primary);
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            transition: background 0.3s, color 0.3s;
         }
 
         .container {
@@ -29,41 +49,104 @@
             flex-direction: column;
             min-height: 100vh;
             min-height: -webkit-fill-available;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Main View */
+        .main-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             padding: 20px;
         }
 
+        .main-view.hidden { display: none; }
+
         .header {
-            text-align: center;
-            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0 20px;
         }
 
         .header h1 {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 600;
-            color: #e94560;
         }
 
-        /* Main Buttons View */
-        .buttons-view {
+        .settings-btn {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Last click info */
+        .last-click {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .last-click-info h3 {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .last-click-info p {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .undo-btn {
+            background: rgba(255, 107, 107, 0.2);
+            border: none;
+            color: #ff6b6b;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .undo-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Buttons area */
+        .buttons-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 30px;
+            gap: 24px;
             padding: 20px 0;
         }
 
         .tracker-btn {
             width: 100%;
-            padding: 60px 20px;
-            font-size: 32px;
+            padding: 50px 20px;
+            font-size: 28px;
             font-weight: 700;
             border: none;
-            border-radius: 20px;
+            border-radius: 24px;
             cursor: pointer;
             transition: transform 0.1s, box-shadow 0.1s;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            position: relative;
+            overflow: hidden;
         }
 
         .tracker-btn:active {
@@ -73,76 +156,102 @@
         .btn-short {
             background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
             color: #000;
-            box-shadow: 0 8px 30px rgba(0, 217, 255, 0.4);
-        }
-
-        .btn-short:active {
-            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.6);
+            box-shadow: 0 10px 40px rgba(0, 217, 255, 0.35);
         }
 
         .btn-long {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
             color: #fff;
-            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
-        }
-
-        .btn-long:active {
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.6);
+            box-shadow: 0 10px 40px rgba(255, 107, 107, 0.35);
         }
 
         .btn-count {
             display: block;
-            font-size: 16px;
-            font-weight: 400;
-            margin-top: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 8px;
             opacity: 0.8;
+            letter-spacing: 1px;
         }
 
-        .stats-toggle {
-            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
-            color: #fff;
-            padding: 20px;
-            font-size: 18px;
-            font-weight: 600;
+        /* Ripple effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Stats link */
+        .stats-link {
+            background: var(--bg-card);
             border: none;
-            border-radius: 15px;
+            color: var(--text-primary);
+            padding: 18px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-top: 20px;
-            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+        }
+
+        .stats-link span:last-child {
+            opacity: 0.5;
         }
 
         /* Stats View */
         .stats-view {
             display: none;
-            flex: 1;
             flex-direction: column;
-            padding: 10px 0;
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        .stats-view.active {
+        .stats-view.active { display: flex; }
+
+        .stats-header {
             display: flex;
-        }
-
-        .buttons-view.hidden {
-            display: none;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 0 20px;
         }
 
         .back-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            padding: 12px 20px;
-            font-size: 16px;
+            background: var(--bg-card);
             border: none;
-            border-radius: 10px;
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            font-size: 20px;
             cursor: pointer;
-            margin-bottom: 20px;
-            align-self: flex-start;
         }
 
+        .stats-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Time filter */
         .time-filter {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 20px;
+            background: var(--bg-card);
+            padding: 6px;
+            border-radius: 14px;
         }
 
         .filter-btn {
@@ -150,134 +259,306 @@
             padding: 12px;
             font-size: 14px;
             font-weight: 600;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: none;
             border-radius: 10px;
             background: transparent;
-            color: #fff;
+            color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .filter-btn.active {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: #e94560;
+            background: var(--accent-purple);
+            color: #fff;
         }
 
+        /* Stats summary */
         .stats-summary {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 20px;
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--bg-card);
             padding: 20px;
-            border-radius: 15px;
+            border-radius: 16px;
             text-align: center;
         }
 
         .stat-card h3 {
-            font-size: 14px;
-            opacity: 0.7;
+            font-size: 13px;
+            color: var(--text-secondary);
             margin-bottom: 8px;
         }
 
         .stat-card .value {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 700;
         }
 
-        .stat-card.short .value {
-            color: #00d9ff;
-        }
+        .stat-card.short .value { color: var(--accent-short); }
+        .stat-card.long .value { color: var(--accent-long); }
 
-        .stat-card.long .value {
-            color: #ff6b6b;
-        }
-
-        .stats-list {
+        /* Timeline */
+        .timeline-section {
             flex: 1;
-            overflow-y: auto;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
-        .stats-list h3 {
-            font-size: 16px;
-            margin-bottom: 15px;
-            opacity: 0.8;
-        }
-
-        .stat-row {
+        .timeline-header {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            align-items: center;
+            margin-bottom: 12px;
         }
 
-        .stat-row:last-child {
-            border-bottom: none;
-        }
-
-        .stat-row .period {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .stat-row .counts {
-            display: flex;
-            gap: 20px;
-        }
-
-        .stat-row .counts span {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .stat-row .counts .short-count {
-            color: #00d9ff;
-        }
-
-        .stat-row .counts .long-count {
-            color: #ff6b6b;
-        }
-
-        .export-btn {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: #fff;
-            padding: 16px;
+        .timeline-header h3 {
             font-size: 16px;
             font-weight: 600;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .timeline-legend {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.short { background: var(--accent-short); }
+        .legend-dot.long { background: var(--accent-long); }
+
+        .timeline-list {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 8px;
+        }
+
+        .timeline-group {
+            margin-bottom: 16px;
+        }
+
+        .timeline-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-date {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 4px;
+            background: var(--bg-primary);
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .timeline-dot.short { background: var(--accent-short); }
+        .timeline-dot.long { background: var(--accent-long); }
+
+        .timeline-time {
+            font-size: 15px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .timeline-type {
+            font-size: 13px;
+            color: var(--text-secondary);
         }
 
         .no-data {
             text-align: center;
-            padding: 40px 20px;
-            opacity: 0.5;
-            font-size: 16px;
+            padding: 60px 20px;
+            color: var(--text-secondary);
         }
 
-        /* Toast notification */
+        .no-data-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .export-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+        }
+
+        .clear-btn {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            padding: 16px 20px;
+            font-size: 15px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+        }
+
+        /* Settings Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 24px 24px 0 0;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .setting-label p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Toggle switch */
+        .toggle {
+            width: 52px;
+            height: 32px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.active {
+            background: var(--accent-purple);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 12px;
+            transition: transform 0.3s;
+        }
+
+        .toggle.active::after {
+            transform: translateX(20px);
+        }
+
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 100px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: rgba(0, 0, 0, 0.9);
-            color: #fff;
-            padding: 15px 30px;
-            border-radius: 30px;
-            font-size: 16px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 16px 28px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 500;
             opacity: 0;
             transition: all 0.3s;
             z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
         .toast.show {
@@ -285,51 +566,94 @@
             opacity: 1;
         }
 
-        /* Clear data button */
-        .clear-btn {
-            background: transparent;
-            color: rgba(255, 255, 255, 0.5);
-            padding: 12px;
-            font-size: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 10px;
+        /* Grouped stats view */
+        .stats-breakdown {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
         }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .breakdown-row:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-period {
+            font-size: 14px;
+        }
+
+        .breakdown-counts {
+            display: flex;
+            gap: 16px;
+        }
+
+        .breakdown-counts span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .count-short { color: var(--accent-short); }
+        .count-long { color: var(--accent-long); }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Button Tracker</h1>
-        </div>
+        <!-- Main View -->
+        <div class="main-view" id="mainView">
+            <div class="header">
+                <h1>Button Tracker</h1>
+                <button class="settings-btn" id="settingsBtn">⚙️</button>
+            </div>
 
-        <!-- Main Buttons View -->
-        <div class="buttons-view" id="buttonsView">
-            <button class="tracker-btn btn-short" id="shortBtn">
-                Short
-                <span class="btn-count" id="shortCount">0 presses</span>
+            <div class="last-click" id="lastClickCard">
+                <div class="last-click-info">
+                    <h3>Dernier clic</h3>
+                    <p id="lastClickText">Aucun</p>
+                </div>
+                <button class="undo-btn" id="undoBtn" disabled>Annuler</button>
+            </div>
+
+            <div class="buttons-area">
+                <button class="tracker-btn btn-short" id="shortBtn">
+                    Court
+                    <span class="btn-count" id="shortCount">0</span>
+                </button>
+                <button class="tracker-btn btn-long" id="longBtn">
+                    Long
+                    <span class="btn-count" id="longCount">0</span>
+                </button>
+            </div>
+
+            <button class="stats-link" id="statsLink">
+                <span>📊 Voir les statistiques</span>
+                <span>→</span>
             </button>
-            <button class="tracker-btn btn-long" id="longBtn">
-                Long
-                <span class="btn-count" id="longCount">0 presses</span>
-            </button>
-            <button class="stats-toggle" id="statsToggle">View Statistics</button>
         </div>
 
         <!-- Stats View -->
         <div class="stats-view" id="statsView">
-            <button class="back-btn" id="backBtn">&larr; Back</button>
+            <div class="stats-header">
+                <button class="back-btn" id="backBtn">←</button>
+                <h1>Statistiques</h1>
+            </div>
 
             <div class="time-filter">
-                <button class="filter-btn active" data-filter="hour">Hourly</button>
-                <button class="filter-btn" data-filter="day">Daily</button>
-                <button class="filter-btn" data-filter="month">Monthly</button>
+                <button class="filter-btn active" data-filter="hour">Heure</button>
+                <button class="filter-btn" data-filter="day">Jour</button>
+                <button class="filter-btn" data-filter="month">Mois</button>
             </div>
 
             <div class="stats-summary">
                 <div class="stat-card short">
-                    <h3>Total Short</h3>
+                    <h3>Total Court</h3>
                     <div class="value" id="totalShort">0</div>
                 </div>
                 <div class="stat-card long">
@@ -338,22 +662,90 @@
                 </div>
             </div>
 
-            <div class="stats-list" id="statsList">
-                <h3>Breakdown</h3>
-                <div id="statsContent"></div>
+            <div id="statsBreakdown" class="stats-breakdown"></div>
+
+            <div class="timeline-section">
+                <div class="timeline-header">
+                    <h3>Historique</h3>
+                    <div class="timeline-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot short"></div>
+                            <span>Court</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot long"></div>
+                            <span>Long</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="timeline-list" id="timelineList"></div>
             </div>
 
-            <button class="export-btn" id="exportBtn">Export to CSV</button>
-            <button class="clear-btn" id="clearBtn">Clear All Data</button>
+            <div class="action-buttons">
+                <button class="export-btn" id="exportBtn">📁 Exporter CSV</button>
+                <button class="clear-btn" id="clearBtn">🗑️</button>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="modal-overlay" id="settingsModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Paramètres</h2>
+                    <button class="modal-close" id="closeSettings">✕</button>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>Mode clair</h3>
+                        <p>Changer le thème de l'application</p>
+                    </div>
+                    <div class="toggle" id="themeToggle"></div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>Vibration</h3>
+                        <p>Retour haptique lors des clics</p>
+                    </div>
+                    <div class="toggle active" id="vibrationToggle"></div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>Son</h3>
+                        <p>Jouer un son lors des clics</p>
+                    </div>
+                    <div class="toggle" id="soundToggle"></div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>Confirmation suppression</h3>
+                        <p>Demander avant de supprimer</p>
+                    </div>
+                    <div class="toggle active" id="confirmToggle"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="toast" id="toast"></div>
 
     <script>
-        // Data storage
+        // Storage keys
         const STORAGE_KEY = 'buttonTrackerData';
+        const SETTINGS_KEY = 'buttonTrackerSettings';
 
+        // Default settings
+        const defaultSettings = {
+            lightTheme: false,
+            vibration: true,
+            sound: false,
+            confirmDelete: true
+        };
+
+        // Get/Save data
         function getData() {
             const data = localStorage.getItem(STORAGE_KEY);
             return data ? JSON.parse(data) : { presses: [] };
@@ -363,28 +755,102 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
+        function getSettings() {
+            const settings = localStorage.getItem(SETTINGS_KEY);
+            return settings ? JSON.parse(settings) : defaultSettings;
+        }
+
+        function saveSettings(settings) {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        }
+
+        // Apply theme
+        function applyTheme() {
+            const settings = getSettings();
+            if (settings.lightTheme) {
+                document.body.classList.add('light-theme');
+            } else {
+                document.body.classList.remove('light-theme');
+            }
+        }
+
+        // Add press
         function addPress(type) {
+            const settings = getSettings();
+
+            // Haptic feedback
+            if (settings.vibration && navigator.vibrate) {
+                navigator.vibrate(type === 'short' ? 50 : 100);
+            }
+
+            // Sound
+            if (settings.sound) {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = type === 'short' ? 800 : 400;
+                gain.gain.value = 0.1;
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            }
+
             const data = getData();
             data.presses.push({
                 type: type,
                 timestamp: new Date().toISOString()
             });
             saveData(data);
-            updateCounts();
-            showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} recorded!`);
+            updateUI();
+            showToast(type === 'short' ? 'Court enregistré' : 'Long enregistré');
         }
 
-        function updateCounts() {
+        // Undo last press
+        function undoLast() {
+            const data = getData();
+            if (data.presses.length > 0) {
+                data.presses.pop();
+                saveData(data);
+                updateUI();
+                showToast('Dernier clic annulé');
+            }
+        }
+
+        // Update UI
+        function updateUI() {
             const data = getData();
             const shortCount = data.presses.filter(p => p.type === 'short').length;
             const longCount = data.presses.filter(p => p.type === 'long').length;
 
-            document.getElementById('shortCount').textContent = `${shortCount} press${shortCount !== 1 ? 'es' : ''}`;
-            document.getElementById('longCount').textContent = `${longCount} press${longCount !== 1 ? 'es' : ''}`;
+            document.getElementById('shortCount').textContent = shortCount;
+            document.getElementById('longCount').textContent = longCount;
             document.getElementById('totalShort').textContent = shortCount;
             document.getElementById('totalLong').textContent = longCount;
+
+            // Last click
+            const undoBtn = document.getElementById('undoBtn');
+            if (data.presses.length > 0) {
+                const last = data.presses[data.presses.length - 1];
+                const date = new Date(last.timestamp);
+                const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                const typeStr = last.type === 'short' ? 'Court' : 'Long';
+                document.getElementById('lastClickText').textContent = `${typeStr} à ${timeStr}`;
+                undoBtn.disabled = false;
+            } else {
+                document.getElementById('lastClickText').textContent = 'Aucun';
+                undoBtn.disabled = true;
+            }
+
+            // Update settings toggles
+            const settings = getSettings();
+            document.getElementById('themeToggle').classList.toggle('active', settings.lightTheme);
+            document.getElementById('vibrationToggle').classList.toggle('active', settings.vibration);
+            document.getElementById('soundToggle').classList.toggle('active', settings.sound);
+            document.getElementById('confirmToggle').classList.toggle('active', settings.confirmDelete);
         }
 
+        // Show toast
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -392,34 +858,39 @@
             setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        // Stats functions
-        function formatHour(date) {
-            return date.toLocaleString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                hour12: true
-            });
+        // Ripple effect
+        function createRipple(e, btn) {
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            const rect = btn.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = e.clientX - rect.left - size / 2 + 'px';
+            ripple.style.top = e.clientY - rect.top - size / 2 + 'px';
+            btn.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
         }
 
-        function formatDay(date) {
-            return date.toLocaleString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
+        // Format functions
+        function formatTime(date) {
+            return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
         }
 
         function formatMonth(date) {
-            return date.toLocaleString('en-US', {
-                month: 'long',
-                year: 'numeric'
-            });
+            return date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
         }
 
-        function getGroupKey(date, filter) {
-            const d = new Date(date);
+        function formatHour(date) {
+            return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Get group key
+        function getGroupKey(timestamp, filter) {
+            const d = new Date(timestamp);
             if (filter === 'hour') {
                 return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}`;
             } else if (filter === 'day') {
@@ -429,16 +900,16 @@
             }
         }
 
-        function updateStats(filter) {
+        // Update stats breakdown
+        function updateStatsBreakdown(filter) {
             const data = getData();
-            const statsContent = document.getElementById('statsContent');
+            const breakdown = document.getElementById('statsBreakdown');
 
             if (data.presses.length === 0) {
-                statsContent.innerHTML = '<div class="no-data">No data yet. Start pressing buttons!</div>';
+                breakdown.innerHTML = '';
                 return;
             }
 
-            // Group by time period
             const groups = {};
             data.presses.forEach(press => {
                 const key = getGroupKey(press.timestamp, filter);
@@ -448,56 +919,101 @@
                 groups[key][press.type]++;
             });
 
-            // Sort by date descending
-            const sortedKeys = Object.keys(groups).sort((a, b) => {
-                return groups[b].date - groups[a].date;
-            });
+            const sortedKeys = Object.keys(groups).sort((a, b) => groups[b].date - groups[a].date);
 
-            // Build HTML
             let html = '';
-            sortedKeys.forEach(key => {
-                const group = groups[key];
+            sortedKeys.slice(0, 10).forEach(key => {
+                const g = groups[key];
                 let label;
                 if (filter === 'hour') {
-                    label = formatHour(group.date);
+                    label = `${formatDate(g.date)} ${g.date.getHours()}h`;
                 } else if (filter === 'day') {
-                    label = formatDay(group.date);
+                    label = formatDate(g.date);
                 } else {
-                    label = formatMonth(group.date);
+                    label = formatMonth(g.date);
                 }
 
                 html += `
-                    <div class="stat-row">
-                        <span class="period">${label}</span>
-                        <div class="counts">
-                            <span class="short-count">S: ${group.short}</span>
-                            <span class="long-count">L: ${group.long}</span>
+                    <div class="breakdown-row">
+                        <span class="breakdown-period">${label}</span>
+                        <div class="breakdown-counts">
+                            <span class="count-short">C: ${g.short}</span>
+                            <span class="count-long">L: ${g.long}</span>
                         </div>
                     </div>
                 `;
             });
 
-            statsContent.innerHTML = html;
+            breakdown.innerHTML = html;
         }
 
+        // Update timeline
+        function updateTimeline() {
+            const data = getData();
+            const timeline = document.getElementById('timelineList');
+
+            if (data.presses.length === 0) {
+                timeline.innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">📊</div>
+                        <p>Pas encore de données</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by day
+            const groups = {};
+            data.presses.slice().reverse().forEach(press => {
+                const date = new Date(press.timestamp);
+                const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+                if (!groups[key]) {
+                    groups[key] = { date: date, items: [] };
+                }
+                groups[key].items.push(press);
+            });
+
+            let html = '';
+            Object.values(groups).slice(0, 7).forEach(group => {
+                html += `
+                    <div class="timeline-group">
+                        <div class="timeline-date">${formatDate(group.date)}</div>
+                `;
+                group.items.slice(0, 20).forEach(item => {
+                    const time = formatTime(new Date(item.timestamp));
+                    const typeLabel = item.type === 'short' ? 'Court' : 'Long';
+                    html += `
+                        <div class="timeline-item">
+                            <div class="timeline-dot ${item.type}"></div>
+                            <span class="timeline-time">${time}</span>
+                            <span class="timeline-type">${typeLabel}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            });
+
+            timeline.innerHTML = html;
+        }
+
+        // Export CSV
         function exportToCSV() {
             const data = getData();
 
             if (data.presses.length === 0) {
-                showToast('No data to export!');
+                showToast('Pas de données à exporter');
                 return;
             }
 
-            // Create CSV content
-            let csv = 'Type,Date,Time,Timestamp\n';
+            let csv = 'Type,Date,Heure,Timestamp\n';
             data.presses.forEach(press => {
                 const date = new Date(press.timestamp);
-                const dateStr = date.toLocaleDateString();
-                const timeStr = date.toLocaleTimeString();
-                csv += `${press.type},${dateStr},${timeStr},${press.timestamp}\n`;
+                const dateStr = date.toLocaleDateString('fr-FR');
+                const timeStr = date.toLocaleTimeString('fr-FR');
+                const typeStr = press.type === 'short' ? 'Court' : 'Long';
+                csv += `${typeStr},${dateStr},${timeStr},${press.timestamp}\n`;
             });
 
-            // Create and trigger download
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -508,30 +1024,44 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            showToast('CSV exported!');
+            showToast('CSV exporté');
         }
 
+        // Clear data
         function clearData() {
-            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-                saveData({ presses: [] });
-                updateCounts();
-                updateStats('hour');
-                showToast('All data cleared!');
+            const settings = getSettings();
+            if (settings.confirmDelete) {
+                if (!confirm('Supprimer toutes les données ?')) return;
             }
+            saveData({ presses: [] });
+            updateUI();
+            updateStatsBreakdown('hour');
+            updateTimeline();
+            showToast('Données supprimées');
         }
 
         // Event listeners
-        document.getElementById('shortBtn').addEventListener('click', () => addPress('short'));
-        document.getElementById('longBtn').addEventListener('click', () => addPress('long'));
+        document.getElementById('shortBtn').addEventListener('click', (e) => {
+            createRipple(e, e.currentTarget);
+            addPress('short');
+        });
 
-        document.getElementById('statsToggle').addEventListener('click', () => {
-            document.getElementById('buttonsView').classList.add('hidden');
+        document.getElementById('longBtn').addEventListener('click', (e) => {
+            createRipple(e, e.currentTarget);
+            addPress('long');
+        });
+
+        document.getElementById('undoBtn').addEventListener('click', undoLast);
+
+        document.getElementById('statsLink').addEventListener('click', () => {
+            document.getElementById('mainView').classList.add('hidden');
             document.getElementById('statsView').classList.add('active');
-            updateStats('hour');
+            updateStatsBreakdown('hour');
+            updateTimeline();
         });
 
         document.getElementById('backBtn').addEventListener('click', () => {
-            document.getElementById('buttonsView').classList.remove('hidden');
+            document.getElementById('mainView').classList.remove('hidden');
             document.getElementById('statsView').classList.remove('active');
         });
 
@@ -539,15 +1069,61 @@
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                updateStats(btn.dataset.filter);
+                updateStatsBreakdown(btn.dataset.filter);
             });
         });
 
         document.getElementById('exportBtn').addEventListener('click', exportToCSV);
         document.getElementById('clearBtn').addEventListener('click', clearData);
 
+        // Settings modal
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            document.getElementById('settingsModal').classList.add('active');
+        });
+
+        document.getElementById('closeSettings').addEventListener('click', () => {
+            document.getElementById('settingsModal').classList.remove('active');
+        });
+
+        document.getElementById('settingsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'settingsModal') {
+                document.getElementById('settingsModal').classList.remove('active');
+            }
+        });
+
+        // Toggle handlers
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const settings = getSettings();
+            settings.lightTheme = !settings.lightTheme;
+            saveSettings(settings);
+            applyTheme();
+            updateUI();
+        });
+
+        document.getElementById('vibrationToggle').addEventListener('click', () => {
+            const settings = getSettings();
+            settings.vibration = !settings.vibration;
+            saveSettings(settings);
+            updateUI();
+        });
+
+        document.getElementById('soundToggle').addEventListener('click', () => {
+            const settings = getSettings();
+            settings.sound = !settings.sound;
+            saveSettings(settings);
+            updateUI();
+        });
+
+        document.getElementById('confirmToggle').addEventListener('click', () => {
+            const settings = getSettings();
+            settings.confirmDelete = !settings.confirmDelete;
+            saveSettings(settings);
+            updateUI();
+        });
+
         // Initialize
-        updateCounts();
+        applyTheme();
+        updateUI();
     </script>
 </body>
 </html>
