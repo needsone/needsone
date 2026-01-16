@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Button Tracker">
+    <title>Button Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            color: #fff;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e94560;
+        }
+
+        /* Main Buttons View */
+        .buttons-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px 0;
+        }
+
+        .tracker-btn {
+            width: 100%;
+            padding: 60px 20px;
+            font-size: 32px;
+            font-weight: 700;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .tracker-btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-short {
+            background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+            color: #000;
+            box-shadow: 0 8px 30px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn-short:active {
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.6);
+        }
+
+        .btn-long {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+            color: #fff;
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-long:active {
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.6);
+        }
+
+        .btn-count {
+            display: block;
+            font-size: 16px;
+            font-weight: 400;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        .stats-toggle {
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            color: #fff;
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+        }
+
+        /* Stats View */
+        .stats-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            padding: 10px 0;
+        }
+
+        .stats-view.active {
+            display: flex;
+        }
+
+        .buttons-view.hidden {
+            display: none;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #e94560;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .stat-card.short .value {
+            color: #00d9ff;
+        }
+
+        .stat-card.long .value {
+            color: #ff6b6b;
+        }
+
+        .stats-list {
+            flex: 1;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stats-list h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-row .period {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .stat-row .counts {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-row .counts span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stat-row .counts .short-count {
+            color: #00d9ff;
+        }
+
+        .stat-row .counts .long-count {
+            color: #ff6b6b;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px 20px;
+            opacity: 0.5;
+            font-size: 16px;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Clear data button */
+        .clear-btn {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 12px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Button Tracker</h1>
+        </div>
+
+        <!-- Main Buttons View -->
+        <div class="buttons-view" id="buttonsView">
+            <button class="tracker-btn btn-short" id="shortBtn">
+                Short
+                <span class="btn-count" id="shortCount">0 presses</span>
+            </button>
+            <button class="tracker-btn btn-long" id="longBtn">
+                Long
+                <span class="btn-count" id="longCount">0 presses</span>
+            </button>
+            <button class="stats-toggle" id="statsToggle">View Statistics</button>
+        </div>
+
+        <!-- Stats View -->
+        <div class="stats-view" id="statsView">
+            <button class="back-btn" id="backBtn">&larr; Back</button>
+
+            <div class="time-filter">
+                <button class="filter-btn active" data-filter="hour">Hourly</button>
+                <button class="filter-btn" data-filter="day">Daily</button>
+                <button class="filter-btn" data-filter="month">Monthly</button>
+            </div>
+
+            <div class="stats-summary">
+                <div class="stat-card short">
+                    <h3>Total Short</h3>
+                    <div class="value" id="totalShort">0</div>
+                </div>
+                <div class="stat-card long">
+                    <h3>Total Long</h3>
+                    <div class="value" id="totalLong">0</div>
+                </div>
+            </div>
+
+            <div class="stats-list" id="statsList">
+                <h3>Breakdown</h3>
+                <div id="statsContent"></div>
+            </div>
+
+            <button class="export-btn" id="exportBtn">Export to CSV</button>
+            <button class="clear-btn" id="clearBtn">Clear All Data</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Data storage
+        const STORAGE_KEY = 'buttonTrackerData';
+
+        function getData() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : { presses: [] };
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function addPress(type) {
+            const data = getData();
+            data.presses.push({
+                type: type,
+                timestamp: new Date().toISOString()
+            });
+            saveData(data);
+            updateCounts();
+            showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} recorded!`);
+        }
+
+        function updateCounts() {
+            const data = getData();
+            const shortCount = data.presses.filter(p => p.type === 'short').length;
+            const longCount = data.presses.filter(p => p.type === 'long').length;
+
+            document.getElementById('shortCount').textContent = `${shortCount} press${shortCount !== 1 ? 'es' : ''}`;
+            document.getElementById('longCount').textContent = `${longCount} press${longCount !== 1 ? 'es' : ''}`;
+            document.getElementById('totalShort').textContent = shortCount;
+            document.getElementById('totalLong').textContent = longCount;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Stats functions
+        function formatHour(date) {
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                hour12: true
+            });
+        }
+
+        function formatDay(date) {
+            return date.toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        function formatMonth(date) {
+            return date.toLocaleString('en-US', {
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+
+        function getGroupKey(date, filter) {
+            const d = new Date(date);
+            if (filter === 'hour') {
+                return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}`;
+            } else if (filter === 'day') {
+                return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            } else {
+                return `${d.getFullYear()}-${d.getMonth()}`;
+            }
+        }
+
+        function updateStats(filter) {
+            const data = getData();
+            const statsContent = document.getElementById('statsContent');
+
+            if (data.presses.length === 0) {
+                statsContent.innerHTML = '<div class="no-data">No data yet. Start pressing buttons!</div>';
+                return;
+            }
+
+            // Group by time period
+            const groups = {};
+            data.presses.forEach(press => {
+                const key = getGroupKey(press.timestamp, filter);
+                if (!groups[key]) {
+                    groups[key] = { short: 0, long: 0, date: new Date(press.timestamp) };
+                }
+                groups[key][press.type]++;
+            });
+
+            // Sort by date descending
+            const sortedKeys = Object.keys(groups).sort((a, b) => {
+                return groups[b].date - groups[a].date;
+            });
+
+            // Build HTML
+            let html = '';
+            sortedKeys.forEach(key => {
+                const group = groups[key];
+                let label;
+                if (filter === 'hour') {
+                    label = formatHour(group.date);
+                } else if (filter === 'day') {
+                    label = formatDay(group.date);
+                } else {
+                    label = formatMonth(group.date);
+                }
+
+                html += `
+                    <div class="stat-row">
+                        <span class="period">${label}</span>
+                        <div class="counts">
+                            <span class="short-count">S: ${group.short}</span>
+                            <span class="long-count">L: ${group.long}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            statsContent.innerHTML = html;
+        }
+
+        function exportToCSV() {
+            const data = getData();
+
+            if (data.presses.length === 0) {
+                showToast('No data to export!');
+                return;
+            }
+
+            // Create CSV content
+            let csv = 'Type,Date,Time,Timestamp\n';
+            data.presses.forEach(press => {
+                const date = new Date(press.timestamp);
+                const dateStr = date.toLocaleDateString();
+                const timeStr = date.toLocaleTimeString();
+                csv += `${press.type},${dateStr},${timeStr},${press.timestamp}\n`;
+            });
+
+            // Create and trigger download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `button-tracker-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('CSV exported!');
+        }
+
+        function clearData() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                saveData({ presses: [] });
+                updateCounts();
+                updateStats('hour');
+                showToast('All data cleared!');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('shortBtn').addEventListener('click', () => addPress('short'));
+        document.getElementById('longBtn').addEventListener('click', () => addPress('long'));
+
+        document.getElementById('statsToggle').addEventListener('click', () => {
+            document.getElementById('buttonsView').classList.add('hidden');
+            document.getElementById('statsView').classList.add('active');
+            updateStats('hour');
+        });
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            document.getElementById('buttonsView').classList.remove('hidden');
+            document.getElementById('statsView').classList.remove('active');
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateStats(btn.dataset.filter);
+            });
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+        document.getElementById('clearBtn').addEventListener('click', clearData);
+
+        // Initialize
+        updateCounts();
+    </script>
+</body>
+</html>
