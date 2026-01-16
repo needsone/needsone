@@ -1015,8 +1015,14 @@
 
             timeline.innerHTML = html;
 
-            // Add delete handlers
+            // Add delete handlers with touch support
             timeline.querySelectorAll('.timeline-delete').forEach(btn => {
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    deleteEntry(btn.dataset.ts);
+                }, { passive: false });
+
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     deleteEntry(btn.dataset.ts);
